@@ -4,7 +4,8 @@ This custom integration connects your Pulse Labs devices (Pulse One, Pro, Hub, e
 
 ## Features
 
-- Supports all device types
+- Supports Pulse One, Pulse Pro, Pulse Zero
+- Support for Hubs, Sensors and Controllers is in development.
 - Uses `/all-devices` for efficient polling
 - Creates dynamic sensors (CO₂, VPD, PPFD, etc.)
 - Accurate leaf/air VPD calculation (Buck 1981)
