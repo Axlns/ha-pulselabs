@@ -1,0 +1,43 @@
+{
+  "title": "Pulse Labs",
+
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Pulse API",
+        "description": "Enter your Pulse API key.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Pulse Labs cloud.",
+      "invalid_auth": "Invalid API key.",
+      "no_devices": "No devices found in this account.",
+      "unknown": "Unknown error"
+    }
+  },
+
+  "entity": {
+    "sensor": {
+      "temperature": { "name": "Temperature" },
+      "humidity": { "name": "Humidity" },
+      "pressure": { "name": "Air Pressure" },
+      "vpd": { "name": "Pulse VPD" },
+      "avpd_calculated": { "name": "Air VPD" },
+      "lvpd_calculated": { "name": "Leaf VPD" },
+      "co2": { "name": "CO₂" },
+      "light": { "name": "Light" },
+      "ppfd": { "name": "PPFD" },
+      "dli": { "name": "DLI" },
+      "signal_strength": { "name": "Signal Strength" },
+      "battery_voltage": { "name": "Battery Voltage" },
+      "api_calls": { "name": "API calls today" },
+      "api_forecast": { "name": "API calls end‑of‑day" }
+    },
+    "binary_sensor": {
+      "plugged_in": { "name": "Plugged in" }
+    }
+  }
+}

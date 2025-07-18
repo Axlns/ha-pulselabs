@@ -1,0 +1,8 @@
+{
+  "name": "Pulse Labs",
+  "content_in_root": false,
+  "domains": [ "sensor", "binary_sensor" ],
+  "country": "Other",
+  "homeassistant": "2023.0.0",
+  "render_readme": true
+}

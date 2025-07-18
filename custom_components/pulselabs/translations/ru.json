@@ -1,0 +1,49 @@
+{
+  "title": "Pulse Labs",
+
+  "config": {
+    "step": {
+      "user": {
+        "title": "Подключение к Pulse API",
+        "description": "Введите API‑ключ Pulse.",
+        "data": {
+          "api_key": "API‑ключ"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не удалось подключиться к облаку Pulse Labs.",
+      "invalid_auth": "Неверный API‑ключ.",
+      "no_devices": "В аккаунте не найдено устройств.",
+      "unknown": "Неизвестная ошибка"
+    }
+  },
+
+  "entity": {
+    "sensor": {
+      "temperature": { "name": "Температура" },
+      "humidity": { "name": "Влажность" },
+      "pressure": { "name": "Атм. давление" },
+      "vpd": { "name": "Pulse VPD" },
+      "avpd_calculated": { "name": "VPD воздуха" },
+      "lvpd_calculated": { "name": "VPD листа" },
+      "co2": { "name": "CO₂" },
+      "light": { "name": "Свет" },
+      "ppfd": { "name": "PPFD" },
+      "dli": { "name": "DLI" },
+      "signal_strength": { "name": "Уровень сигнала" },
+      "battery_voltage": { "name": "Напряжение батареи" },
+      "api_calls": { "name": "API‑запросов сегодня" },
+      "api_forecast": { "name": "API‑запросов к концу дня" }
+    },
+    "binary_sensor": {
+      "plugged_in": {
+        "name": "Питание от сети",
+        "state": {
+          "on": "Подключено к сети",
+          "off": "Работает от батареи"
+        }
+      }
+    }
+  }
+}

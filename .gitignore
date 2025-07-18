@@ -1,0 +1,54 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Pipenv / Poetry / virtualenv
+.venv/
+venv/
+ENV/
+env/
+pip-wheel-metadata/
+
+# PyInstaller
+*.spec
+
+# === Home Assistant ===
+home-assistant.log
+home-assistant.log.*
+custom_components/*/__pycache__/
+
+# === Visual Studio / VSCode ===
+.vscode/
+.vs/
+*.code-workspace
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.dbmdl
+
+# === System ===
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+
+# === OS Metadata ===
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# === Git ===
+*.orig
+*.rej
+*.patch
