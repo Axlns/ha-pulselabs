@@ -1,4 +1,4 @@
-﻿"""Fake Pulse Labs cloud API for local testing."""
+"""Fake Pulse Labs cloud API for local testing."""
 
 from __future__ import annotations
 from typing import Any, Dict, List

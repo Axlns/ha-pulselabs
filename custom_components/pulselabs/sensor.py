@@ -1,4 +1,4 @@
-﻿"""Pulse Labs sensors."""
+"""Pulse Labs sensors."""
 from __future__ import annotations
 
 from typing import Any

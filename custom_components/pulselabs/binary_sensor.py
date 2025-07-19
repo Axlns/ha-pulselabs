@@ -1,4 +1,4 @@
-﻿# custom_components/pulselabs/binary_sensor.py
+# custom_components/pulselabs/binary_sensor.py
 from __future__ import annotations
 
 from homeassistant.components.binary_sensor import (
