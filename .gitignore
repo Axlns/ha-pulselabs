@@ -52,3 +52,6 @@ $RECYCLE.BIN/
 *.orig
 *.rej
 *.patch
+
+# === ha-pulselabs ===
+.api-samples

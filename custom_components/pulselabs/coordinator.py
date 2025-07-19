@@ -7,8 +7,9 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_DEVICES
+from .const import DOMAIN, MANUFACTURER, DEVICE_TYPE_MAP
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ COPY_DEVICE_KEYS = (
     "proLightReadingPreviewDto", "vpdLeafTempOffsetInF",
 )
 
-class PulseDataUpdateCoordinator(DataUpdateCoordinator[dict[str, dict]]):
+class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
     """
     Опрос единственный: GET /all-devices
     data → dict[device_id] = mostRecentDataPoint + метаданные прибора
@@ -61,6 +62,11 @@ class PulseDataUpdateCoordinator(DataUpdateCoordinator[dict[str, dict]]):
                 wrapped["humidityRh"]
             )
 
+            wrapped["dpF_calculated"] = self._calc_dew_point_f(
+                wrapped["temperatureF"],
+                wrapped["humidityRh"]
+            )
+
         # вычисляем VPD листа – если есть температура воздуха, влажность и разница между температурой листа и воздуха
         if {"temperatureF", "humidityRh", "vpdLeafTempOffsetInF"} <= wrapped.keys():
             wrapped["lvpd_calculated"] = self._calc_leaf_vpd(
@@ -69,11 +75,14 @@ class PulseDataUpdateCoordinator(DataUpdateCoordinator[dict[str, dict]]):
                 wrapped["vpdLeafTempOffsetInF"]
             )
 
+        # добавляем api usage
+        wrapped["api_calls"] = self.calls_today
+        wrapped["api_forecast"] = self.expected_at_end_of_day
+
         # 4) убираем None, чтобы build_entities не создавал лишних сенсоров
         return {k: v for k, v in wrapped.items() if v is not None}
 
     @staticmethod
-    # рассчитываем VPD воздуха, если есть температура воздуха и влажность
     def _calc_air_vpd(
         tF: float,
         rh: float
@@ -111,6 +120,19 @@ class PulseDataUpdateCoordinator(DataUpdateCoordinator[dict[str, dict]]):
         vpd = esat_buck(leafC) - esat_buck(tC) * rh / 100.0
         return round(vpd, 3)   # три знака – но не из-за Pulse, а для точности
 
+    @staticmethod
+    def _calc_dew_point_f(tF: float, rh: float) -> float:
+        """Расчёт точки росы (в °F) из температуры воздуха (°F) и RH (%)"""
+        import math
+
+        # Переводим в °C
+        tC = (tF - 32) * 5 / 9
+        a, b = 17.27, 237.7
+        alpha = (a * tC) / (b + tC) + math.log(rh / 100.0)
+        dpC = (b * alpha) / (a - alpha)
+        dpF = dpC * 9 / 5 + 32
+        return round(dpF, 2)
+
     # ---------- main ----------
     async def _async_update_data(self) -> dict[str, dict]:
         """Запрашиваем /all-devices и возвращаем данные всех приборов."""
@@ -125,15 +147,6 @@ class PulseDataUpdateCoordinator(DataUpdateCoordinator[dict[str, dict]]):
             raw = await self.api.async_get("/all-devices")
             self.calls_today += 1
 
-            device_list = raw.get("deviceViewDtos", []) if isinstance(raw, dict) else raw
-            data: dict[str, dict] = {}
-
-            for dev in device_list:
-                dev_id = str(dev["id"])
-                mrd = dev.get("mostRecentDataPoint", {})
-                data[dev_id] = self._wrap(dev, mrd)
-                _LOGGER.debug(data[dev_id])
-
             # прогноз на конец дня
             elapsed = (now - self._first_call).total_seconds()
             if elapsed > 60:
@@ -144,6 +157,14 @@ class PulseDataUpdateCoordinator(DataUpdateCoordinator[dict[str, dict]]):
                 self.expected_at_end_of_day = int(self.calls_today + rate * sec_left)
             else:
                 self.expected_at_end_of_day = 0
+
+            device_list = raw.get("deviceViewDtos", []) if isinstance(raw, dict) else raw
+            data: dict[str, dict] = {}
+            for dev in device_list:
+                dev_id = str(dev["id"])
+                mrd = dev.get("mostRecentDataPoint", {})
+                data[dev_id] = self._wrap(dev, mrd)
+                # _LOGGER.debug(data[dev_id])
 
             await self._save_usage_stats()
             return data
@@ -169,3 +190,16 @@ class PulseDataUpdateCoordinator(DataUpdateCoordinator[dict[str, dict]]):
             self.calls_today = data.get("calls_today", 0)
             fc = data.get("first_call")
             self._first_call = datetime.fromisoformat(fc) if fc else None
+
+class PulseCoordinatorEntity(CoordinatorEntity):
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator, device_id: int):
+        super().__init__(coordinator)
+        self._device_id = device_id
+        data = coordinator.data.get(str(device_id), {})
+
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, str(device_id))}
+        }
+        

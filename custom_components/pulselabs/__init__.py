@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-logging.getLogger("custom_components.pulselabs").setLevel(logging.DEBUG)
 
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.config_entries import ConfigEntry
@@ -12,7 +11,7 @@ from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN, CONF_DEVICES, DEVICE_TYPE_MAP, MANUFACTURER
 from .api import get_api
-from .coordinator import PulseDataUpdateCoordinator
+from .coordinator import PulseDeviceCoordinator
 
 PLATFORMS = ["sensor", "binary_sensor"]
 
@@ -21,7 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     session = async_get_clientsession(hass)
     api = get_api(session, entry.data[CONF_API_KEY])
 
-    coordinator = PulseDataUpdateCoordinator(
+    coordinator = PulseDeviceCoordinator(
         hass,
         api,
         entry,
@@ -33,16 +32,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # регистрируем каждое устройство
     device_registry = dr.async_get(hass)
 
-    for dev in entry.data[CONF_DEVICES]:
-        dev_id = str(dev["id"])
-        model = DEVICE_TYPE_MAP.get(dev.get("deviceType"), f"Pulse {dev.get('deviceType')}")
+    for device in entry.data[CONF_DEVICES]:
+        device_id = str(device["id"])
+        model = DEVICE_TYPE_MAP.get(device.get("deviceType"), f"Pulse {device.get('deviceType')}")
         device_registry.async_get_or_create(
             config_entry_id=entry.entry_id,
-            identifiers={(DOMAIN, dev_id)},
+            identifiers={(DOMAIN, device_id)},
             manufacturer=MANUFACTURER,
             model=model,
-            name=dev.get("name") or f"{model} {dev_id}",
-            sw_version=str(dev.get("firmwareVersion") or ""),
+            name=device.get("name") or f"{model} {device_id}",
+            sw_version=str(device.get("firmwareVersion") or ""),
         )
     
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {

@@ -1,147 +1,195 @@
-"""Pulse Labs sensors."""
 from __future__ import annotations
+from typing import Final, Any
 
-from typing import Any
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
-    SensorStateClass,
+    SensorStateClass
 )
-from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
-    BinarySensorDeviceClass,
+from homeassistant.const import (
+    UnitOfTemperature,
+    UnitOfPressure,
+    PERCENTAGE,
+    UnitOfElectricPotential,
+    CONCENTRATION_PARTS_PER_MILLION
 )
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTemperature, UnitOfPressure, PERCENTAGE
 
+from homeassistant.helpers.entity import EntityCategory
+
+from .coordinator import PulseCoordinatorEntity
 from .const import DOMAIN, CONF_DEVICES, MANUFACTURER
-from .coordinator import PulseDataUpdateCoordinator
 
 import logging
-
 _LOGGER = logging.getLogger(__name__)
 
-SENSOR_MAP: dict[str, tuple[str | None, SensorDeviceClass | None, str | None]] = {
-    "temperatureF":    ("temperature",      SensorDeviceClass.TEMPERATURE,    UnitOfTemperature.FAHRENHEIT),
-    "humidityRh":      ("humidity",         SensorDeviceClass.HUMIDITY,       PERCENTAGE),
-    "airPressure":     ("pressure",         SensorDeviceClass.PRESSURE,       UnitOfPressure.PA),
-    "vpd":             ("vpd",              None,                             "kPa"),
-    "avpd_calculated": ("avpd_calculated",  None,                             "kPa"),
-    "lvpd_calculated": ("lvpd_calculated",  None,                             "kPa"),
-    "co2":             ("co2",              SensorDeviceClass.CO2,            "ppm"),
-    "lightLux":        ("light",            None,                             PERCENTAGE),
-    "ppfd":            ("ppfd",             None,                             "μmol/m²/s"),
-    "dli":             ("dli",              None,                             "mol/m²/d"),
-    "signalStrength":  ("signal_strength",  SensorDeviceClass.SIGNAL_STRENGTH,"dBm"),
-    "batteryV":        ("battery_voltage",  SensorDeviceClass.VOLTAGE,        "V"),
-    "api_calls":       ("api_calls",        None,                             "calls"),
-    "api_forecast":    ("api_forecast",     None,                             "calls"),
+SENSOR_MAP: Final[dict[str, dict[str, Any]]] = {
+    "temperatureF": {
+        "translation_key": "temperature",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.FAHRENHEIT,
+    },
+    "humidityRh": {
+        "translation_key": "humidity",
+        "device_class": SensorDeviceClass.HUMIDITY,
+        "unit": PERCENTAGE,
+    },
+    "airPressure": {
+        "translation_key": "air_pressure",
+        "device_class": SensorDeviceClass.PRESSURE,
+        "unit": UnitOfPressure.PA,
+    },
+    "vpd": {
+        "translation_key": "vpd",
+        "device_class": None,
+        "unit": UnitOfPressure.KPA,
+        "icon": "mdi:leaf-circle"
+    },
+    "lvpd_calculated": {
+        "translation_key": "lvpd_calculated",
+        "device_class": None,
+        "unit": UnitOfPressure.KPA,
+        "icon": "mdi:leaf-circle-outline"
+    },
+    "avpd_calculated": {
+        "translation_key": "avpd_calculated",
+        "device_class": None,
+        "unit": UnitOfPressure.KPA,
+        "icon": "mdi:water-opacity"
+    },
+    "dpF_calculated": {
+        "translation_key": "dew_point",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.FAHRENHEIT,
+        "icon": "mdi:thermometer-water"
+    },
+    "co2": {
+        "translation_key": "co2",
+        "device_class": SensorDeviceClass.CO2,
+        "unit": CONCENTRATION_PARTS_PER_MILLION,
+    },
+    "co2Temperature": {
+        "translation_key": "co2_temperature",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "disabled_by_default": True,
+        "icon": "mdi:thermometer-alert"
+    },
+    "co2Rh": {
+        "translation_key": "co2_humidity",
+        "device_class": SensorDeviceClass.HUMIDITY,
+        "unit": PERCENTAGE,
+        "disabled_by_default": True,
+        "icon":"mdi:water-alert"
+    },
+    "ppfd": {
+        "translation_key": "ppfd",
+        "device_class": None,
+        "unit": "µmol/m²/s",
+        "disabled_by_default": True,
+        "icon": "mdi:white-balance-sunny"
+    },
+    "dli": {
+        "translation_key": "dli",
+        "device_class": None,
+        "unit": "mol/m²/d",
+        "disabled_by_default": True,
+        "icon": "mdi:solar-power-variant"
+    },
+    "lightLux": {
+        "translation_key": "light",
+        "device_class": None,
+        "unit": PERCENTAGE,
+        "icon": "mdi:brightness-6"
+    },
+    "signalStrength": {
+        "translation_key": "signal",
+        "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
+        "unit": "dBm",
+        "disabled_by_default": True,
+    },
+    "batteryV": {
+        "translation_key": "battery_voltage",
+        "device_class": SensorDeviceClass.VOLTAGE,
+        "unit": UnitOfElectricPotential.VOLT,
+        "disabled_by_default": True,
+    },
+    "api_calls": {
+        "translation_key": "api_calls_today",
+        "unit": "calls",
+        "entity_category": EntityCategory.DIAGNOSTIC,
+        "icon": "mdi:counter"
+    },
+    "api_forecast": {
+        "translation_key": "api_calls_forecast",
+        "unit": "calls",
+        "entity_category": EntityCategory.DIAGNOSTIC,
+        "icon": "mdi:chart-line"
+    },
 }
 
-def build_entities(entry, coordinator):
-    """Вернуть список ENTITIES для всех устройств."""
+def build_entities(coordinator, config_entry):
     entities = []
 
-    for dev in entry.data[CONF_DEVICES]:
-        dev_id = str(dev["id"])
-        dev_name = dev.get("name") or f"{dev['deviceType']} {dev_id}"
-        keys = coordinator.data.get(dev_id, {}).keys()
+    for device_id, data in coordinator.data.items():
+        for key in SENSOR_MAP:
+            if key not in data or data[key] is None:
+                continue
 
-        # обычные sensors
-        entities.extend(
-            PulseSensor(coordinator, dev_id, key, dev_name)
-            for key in SENSOR_MAP
-            if key in keys
-        )
-       
-        # usage‑счётчики (один на прибор, чтобы не ломать дашборды)
-        entities.append(APICallSensor(coordinator, dev_id, dev_name))
-        entities.append(APIForecastSensor(coordinator, dev_id, dev_name))
+            spec = SENSOR_MAP[key]
+            entity = PulseSensorEntity(
+                coordinator=coordinator,
+                device_id=device_id,
+                data_key=key,
+                translation_key=spec.get("translation_key"),
+                device_class=spec.get("device_class"),
+                unit=spec.get("unit"),
+                entity_category=spec.get("entity_category"),
+                disabled_by_default = spec.get("disabled_by_default"),
+                icon = spec.get("icon")
+            )
+            
+            entities.append(entity)
 
     return entities
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-    entities = build_entities(entry, coordinator)
+    entities = build_entities(coordinator, entry)
     async_add_entities(entities)
 
+class PulseSensorEntity(PulseCoordinatorEntity, SensorEntity):
+    
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
-class PulseSensor(CoordinatorEntity, SensorEntity):
-    """Sensor for one metric of one device."""
-
-    def __init__(self, coordinator, device_id: str, api_key: str, dev_name: str):
-        super().__init__(coordinator)
-
-        self._device_id = device_id 
-        self._api_key = api_key
-
-        t_key, d_class, unit = SENSOR_MAP[api_key]
-        if t_key is not None:
-            self._attr_translation_key = t_key
-        self._attr_has_entity_name = True
-        self._attr_device_class = d_class
+    def __init__(
+        self,
+        coordinator,
+        device_id,
+        data_key,
+        translation_key=None,
+        device_class=None,
+        unit=None,
+        entity_category=None,
+        disabled_by_default=False,
+        icon = None
+    ):
+        super().__init__(coordinator, device_id)
+        self._api_key = data_key
+        self._attr_unique_id = f"{device_id}_{data_key}"
+        self._attr_device_class = device_class
         self._attr_native_unit_of_measurement = unit
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_unique_id = f"{device_id}_{api_key}"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, device_id)},
-            "manufacturer": MANUFACTURER,
-            "name": dev_name,
-        }
+        self._attr_entity_category = entity_category
+        
+        if translation_key is not None:
+            self._attr_translation_key = translation_key
+        if disabled_by_default:
+            self._attr_entity_registry_enabled_default = False
+        if icon:
+            self._attr_icon = icon
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         val = self.coordinator.data.get(self._device_id, {}).get(self._api_key)
         return round(val, 2) if isinstance(val, float) else val
-
-
-
-class APICallSensor(CoordinatorEntity, SensorEntity):
-    """Сенсор: сколько запросов сделано сегодня."""
-
-    _attr_translation_key = "api_calls"
-    _attr_icon = "mdi:counter"
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
-    _attr_native_unit_of_measurement = "calls"
-    _attr_has_entity_name = True
-
-    def __init__(self, coordinator, device_id: str, dev_name: str) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{device_id}_api_calls"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, device_id)},
-            "manufacturer": MANUFACTURER,
-            "name": dev_name,
-        }
-
-    @property
-    def native_value(self) -> int | None:
-        return self.coordinator.calls_today
-
-
-# ------------------------------------------------------------------
-# 3.  Прогноз использования API к концу суток
-# ------------------------------------------------------------------
-class APIForecastSensor(CoordinatorEntity, SensorEntity):
-    """Прогноз количества вызовов API к концу текущих суток."""
-
-    _attr_translation_key = "api_forecast"
-    _attr_icon = "mdi:chart-line"
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = "calls"
-    _attr_has_entity_name = True
-
-    def __init__(self, coordinator, device_id: str, dev_name: str) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{device_id}_api_forecast"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, device_id)},
-            "manufacturer": MANUFACTURER,
-            "name": dev_name,
-        }
-
-    @property
-    def native_value(self) -> int | None:
-        return self.coordinator.expected_at_end_of_day

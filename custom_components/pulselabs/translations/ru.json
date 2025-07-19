@@ -23,18 +23,21 @@
     "sensor": {
       "temperature": { "name": "Температура" },
       "humidity": { "name": "Влажность" },
-      "pressure": { "name": "Атм. давление" },
+      "pressure": { "name": "Давление" },
+      "dew_point": { "name": "Точка росы" },
       "vpd": { "name": "Pulse VPD" },
       "avpd_calculated": { "name": "VPD воздуха" },
       "lvpd_calculated": { "name": "VPD листа" },
       "co2": { "name": "CO₂" },
+      "co2_temperature": { "name": "Температура в CO₂-датчике" },
+      "co2_humidity": { "name": "Влажность в CO₂-датчике" },
       "light": { "name": "Свет" },
       "ppfd": { "name": "PPFD" },
       "dli": { "name": "DLI" },
       "signal_strength": { "name": "Уровень сигнала" },
       "battery_voltage": { "name": "Напряжение батареи" },
-      "api_calls": { "name": "API‑запросов сегодня" },
-      "api_forecast": { "name": "API‑запросов к концу дня" }
+      "api_calls_today": { "name": "API‑запросов сегодня" },
+      "api_calls_forecast": { "name": "API‑запросов к концу дня" }
     },
     "binary_sensor": {
       "plugged_in": {
