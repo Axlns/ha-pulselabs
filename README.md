@@ -1,6 +1,6 @@
 ﻿# Pulse Labs Integration for Home Assistant
 
-This custom integration connects your Pulse Labs devices (Pulse One, Pro, Hub, etc.) to Home Assistant via the official cloud API.
+This custom integration connects your [Pulse Labs, Inc.](https://pulsegrow.com) devices (Pulse One, Pro, Hub, etc.) to Home Assistant via the official cloud API.
 
 ## Features
 
@@ -13,6 +13,7 @@ This custom integration connects your Pulse Labs devices (Pulse One, Pro, Hub, e
 
 ## Installation via HACS
 
+1. First you need to install [HACS](https://hacs.xyz) into your Home Assistant installation. Please refer to this [link](https://hacs.xyz/docs/use) for documentation on how to install HACS.
 1. Go to **HACS → Integrations → Custom Repositories**
 2. Add this repo URL as a **"Integration"**
 3. Search for **Pulse Labs**, install
@@ -25,6 +26,6 @@ Copy the `custom_components/pulselabs/` folder into your Home Assistant `custom_
 
 ## Configuration
 
-You will be asked to enter your Pulse API key. All devices will be discovered automatically.
+You will be asked to enter your Pulse API key. All supported devices will be discovered automatically.
 
 ---
