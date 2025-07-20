@@ -26,7 +26,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry,
         entry.data[CONF_DEVICES],     # ← список устройств из config_flow
     )
-    await coordinator.load_usage_stats()
+
+    await coordinator.async_load_api_usage_state()
     await coordinator.async_config_entry_first_refresh()
 
     # регистрируем каждое устройство

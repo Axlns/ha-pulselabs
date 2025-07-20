@@ -72,18 +72,33 @@ MOCK_ALL_DEVICES: Dict[str, Any] = {
 class MockPulseApi(BaseApi):
     """Drop‑in replacement for PulseApi that returns canned JSON."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        pass  # api_key и session не нужны
+    def __init__(self, *_, **__) -> None:
+        super().__init__()          # ← инициализируем datapoints_today
+        # Таблица «путь → payload», будет менять тест
+        self._responses: dict[str, object] = {
+            "/users": MOCK_USERS,
+            "/all-devices": MOCK_ALL_DEVICES,
+        }
 
     async def async_get(self, path: str):
-        if path == "/users":
-            return MOCK_USERS
-        if path == "/all-devices":
-            return MOCK_ALL_DEVICES
-        if path.startswith("/devices/") and path.endswith("/recent-data"):
+        # Если ответ переопределён в тесте — берём его
+        if path in self._responses:
+            payload = self._responses[path]
+        elif path.startswith("/devices/") and path.endswith("/recent-data"):
             dev_id = int(path.split("/")[2])
-            for dev in MOCK_ALL_DEVICES["deviceViewDtos"]:
-                if dev["id"] == dev_id:
-                    return dev["mostRecentDataPoint"]
-            raise ValueError(f"Unknown device id {dev_id}")
-        raise ValueError(f"Unhandled mock path {path}")
+            payload = next(
+                (
+                    dev["mostRecentDataPoint"]
+                    for dev in MOCK_ALL_DEVICES["deviceViewDtos"]
+                    if dev["id"] == dev_id
+                ),
+                None,
+            )
+            if payload is None:
+                raise ValueError(f"Unknown device id {dev_id}")
+        else:
+            raise ValueError(f"Unhandled mock path {path}")
+
+        # Учтём расход datapoints
+        self._register_usage(path, payload)
+        return payload

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import math
 import logging
-from datetime import datetime, time, timedelta
+from datetime import timedelta
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
+from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN, MANUFACTURER, DEVICE_TYPE_MAP
 
@@ -28,9 +29,6 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
         self.hass = hass
         self.api = api
         self.devices = devices                      # сохранён список из config_flow
-        self.calls_today = 0
-        self.expected_at_end_of_day = 0
-        self._first_call: datetime | None = None
 
         super().__init__(
             hass,
@@ -39,6 +37,16 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
             update_interval=timedelta(seconds=60),
             config_entry=entry
         )
+
+        self._api_usage_store = Store(hass, 1, f"{DOMAIN}_api_usage_{entry.entry_id}.json")
+
+        self._api_usage_state = {
+            "used": 0,
+            "last_call_datetime": dt_util.now().isoformat()
+        }
+
+        self.api.set_usage_update_callback(self._persist_api_usage)
+
 
     # ---------- helpers ----------
        
@@ -74,10 +82,6 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
                 wrapped["humidityRh"],
                 wrapped["vpdLeafTempOffsetInF"]
             )
-
-        # добавляем api usage
-        wrapped["api_calls"] = self.calls_today
-        wrapped["api_forecast"] = self.expected_at_end_of_day
 
         # 4) убираем None, чтобы build_entities не создавал лишних сенсоров
         return {k: v for k, v in wrapped.items() if v is not None}
@@ -136,28 +140,11 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
     # ---------- main ----------
     async def _async_update_data(self) -> dict[str, dict]:
         """Запрашиваем /all-devices и возвращаем данные всех приборов."""
+        _LOGGER.debug("Coordinator fetch  id=%s  at=%s", id(self), dt_util.utcnow().isoformat(timespec="seconds"))
+
         try:
-            now = datetime.utcnow()
-
-            # сброс счётчика при смене суток
-            if self._first_call is None or now.date() != self._first_call.date():
-                self._first_call = now
-                self.calls_today = 0
-
-            raw = await self.api.async_get("/all-devices")
-            self.calls_today += 1
-
-            # прогноз на конец дня
-            elapsed = (now - self._first_call).total_seconds()
-            if elapsed > 60:
-                sec_left = (
-                    datetime.combine(now.date(), time(23, 59, 59)) - now
-                ).total_seconds()
-                rate = self.calls_today / elapsed
-                self.expected_at_end_of_day = int(self.calls_today + rate * sec_left)
-            else:
-                self.expected_at_end_of_day = 0
-
+            raw = await self.api.async_get_all_devices()
+            
             device_list = raw.get("deviceViewDtos", []) if isinstance(raw, dict) else raw
             data: dict[str, dict] = {}
             for dev in device_list:
@@ -166,30 +153,24 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
                 data[dev_id] = self._wrap(dev, mrd)
                 # _LOGGER.debug(data[dev_id])
 
-            await self._save_usage_stats()
             return data
 
         except Exception as err:
             raise UpdateFailed(err) from err
 
-    # ---------- storage ----------
+    async def async_load_api_usage_state(self):
+        saved = await self._api_usage_store.async_load()
+        if saved:
+            self._api_usage_state.update(saved)
+            self.api.set_usage_state(
+                used=saved.get("used", 0),
+                last_call_datetime=saved.get("last_call_datetime")
+            )
 
-    async def _save_usage_stats(self):
-        store = Store(self.hass, 1, f"{DOMAIN}_usage_global")
-        await store.async_save(
-            {
-                "first_call": self._first_call.isoformat() if self._first_call else None,
-                "calls_today": self.calls_today,
-            }
-        )
-
-    async def load_usage_stats(self):
-        store = Store(self.hass, 1, f"{DOMAIN}_usage_global")
-        data = await store.async_load()
-        if data:
-            self.calls_today = data.get("calls_today", 0)
-            fc = data.get("first_call")
-            self._first_call = datetime.fromisoformat(fc) if fc else None
+    def _persist_api_usage(self):
+        self._api_usage_state["used"] = self.api.datapoints_today
+        self._api_usage_state["last_call_datetime"] = self.api._last_call_datetime.isoformat()
+        self.hass.async_create_task(self._api_usage_store.async_save(self._api_usage_state))
 
 class PulseCoordinatorEntity(CoordinatorEntity):
     _attr_has_entity_name = True

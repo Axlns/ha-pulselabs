@@ -1,0 +1,2910 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Pulse Api",
+    "description": "# Introduction\n\nThe Pulse API is an HTTP API that is designed to interact with your pulse account and devices. \n\nNote that not all app functionality has yet been exposed through this api, so if you need additional functionality, contact our support team at support@pulsegrow.com and we will add it for you. \n\nThis API reference includes all technical documentation developers need to integrate third-party applications and platforms. If you have any additional questions send an email to our support team at support@pulsegrow.com\n\n# Authentication\n\nAll HTTP requests made against the Pulse API must be validated with an API Key.\n\n### Acquiring an API Key\n\nTo generate a new api key go to https://app.pulsegrow.com/account, scroll down to the api key section, and press the \"Add Api Key\" button.\n\n### Using Your API Key \n\nNote: API keys are generated per grow and only have access to that grow's resources (users, devices, etc). \n\nAll requests should target domain `https://api.pulsegrow.com`.\n\nYou need to provide the API key via the `x-api-key` header.\n\nSecurity Warning: It's important to secure your API Key against public access. Guard and secure it like a password. If you suspect that your API key has been compromised, revoke it via the web application at https://app.pulsegrow.com/account. \n\nSample request:\n\n```\n\ncurl --request GET \"https://api.pulsegrow.com/devices/{deviceId}/recent-data\" --header \"x-api-key: {apiKey}\"\n\n``` \n\n### Api consumption\n\n Api consumption is measured by number of datapoints retrieved.\n\n An api call that does not retrieve datapoints counts as one datapoint.\n\n Hobbyist users can use up to 4800 datapoints daily, Enthusiasts and Professionals 24000 and 120000, respectively \n\n",
+    "termsOfService": "https://pulsegrow.com/terms",
+    "contact": {
+      "name": "Need help? Contact support",
+      "email": "support@pulsegrow.com"
+    },
+    "version": "v1",
+    "x-logo": {
+      "url": "https://cdn.shopify.com/s/files/1/2451/2393/files/logo_1_400x.png",
+      "altText": "The Logo"
+    }
+  },
+  "paths": {
+    "/all-devices": {
+      "get": {
+        "tags": [
+          "AllDevices"
+        ],
+        "summary": "Gets all of the grows devices, including latest data.\r\nSparklines (data for the last hour) are not included",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NonTypeSpecificDeviceListDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}/recent-data": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Device Recent Data",
+        "description": "Gets the last data point for a device",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "description": "The device identifier for which to retrieve the latest data.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 123
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicApiDataPoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}/data-range": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Data Range for Device. Each Datapoint in range will be counted towards your api usage limit.",
+        "description": "Retrieves all datapoints within a specified timespan the device.",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "description": "The device identifier for which to retrieve data.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 123
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "The beginning time of your data range in ISO 8601 format.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2020-01-31T01:11:22Z"
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "description": "The end time of your data range in ISO 8601 format. If not provided, API will use the current time.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2020-01-31T20:11:22Z"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicApiDataPoint"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices/ids": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "All Device Ids",
+        "description": "Retrieves all of the device ids assigned to the grow.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices/details": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "All Device Details",
+        "description": "Retrieves detailed information for all devices on the grow.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceDetailsDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices/range": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Data Range for All Devices. Each Datapoint will be counted towards your api usage limit.",
+        "description": "Retrieves all datapoints within a specified timespan for all devices on grow. Max data range of 7 days.",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "description": "The beginning time of your data range in ISO 8601 format.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2020-01-31T01:11:22Z"
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "description": "The end time of your data range in ISO 8601 format. If not provided, API will use the current time.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2020-01-31T20:11:22Z"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicApiDataPoint"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hubs/ids": {
+      "get": {
+        "tags": [
+          "Hub"
+        ],
+        "summary": "All Hub Ids",
+        "description": "Retrieves all of the hubs ids assigned to the grow.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hubs/{hubId}": {
+      "get": {
+        "tags": [
+          "Hub"
+        ],
+        "summary": "Gets details for hub",
+        "parameters": [
+          {
+            "name": "hubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HubDetailsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invitations": {
+      "get": {
+        "tags": [
+          "Invitation"
+        ],
+        "summary": "List of invitations that have been sent, but not yet been accepted or canceled.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ViewInvitationDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/light-readings/{deviceId}": {
+      "get": {
+        "tags": [
+          "ProLightReading"
+        ],
+        "summary": "Retrieves (one page worth of) light readings(including spectrum) for a given device, supports pagination.",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "description": "Id of the device",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Object containing requested page position. Note that page numeration starts from zero",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LightReadingsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{deviceId}/trigger-light-reading": {
+      "get": {
+        "tags": [
+          "ProLightReading"
+        ],
+        "summary": "Remotely triggers a light reading off of a Pulse Pro.\r\nThe Result needs to be fetched separately in 5-10 seconds\r\nThere is a small chance of the Pro failing to trigger a light reading remotely\r\nIf no new data is found - retrigger in 1 minute",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "description": "Id of the device",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IActionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sensors/{sensorId}/recent-data": {
+      "get": {
+        "tags": [
+          "Sensors"
+        ],
+        "summary": "Sensor Recent Data",
+        "description": "Gets the last data point for a sensor",
+        "parameters": [
+          {
+            "name": "sensorId",
+            "in": "path",
+            "description": "The sensor identifier for which to retrieve the latest data.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 123
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MostRecentSensorDataPointDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sensors/{sensorId}/force-read": {
+      "get": {
+        "tags": [
+          "Sensors"
+        ],
+        "summary": "Force an immediate sensor reading",
+        "parameters": [
+          {
+            "name": "sensorId",
+            "in": "path",
+            "description": "The sensor identifier",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 123
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UniversalDataPointDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sensors/{sensorId}/data-range": {
+      "get": {
+        "tags": [
+          "Sensors"
+        ],
+        "summary": "Data Range for Sensor. Each Datapoint in range will be counted towards your api usage limit.",
+        "description": "Retrieves all datapoints within a specified timespan the sensor.",
+        "parameters": [
+          {
+            "name": "sensorId",
+            "in": "path",
+            "description": "The sensor identifier for which to retrieve data.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 123
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "The beginning time of your data range in ISO 8601 format.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2020-01-31T01:11:22Z"
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "description": "The end time of your data range in ISO 8601 format. If not provided, API will use the current time.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2020-01-31T20:11:22Z"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UniversalDataPointArrayDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sensors/ids": {
+      "get": {
+        "tags": [
+          "Sensors"
+        ],
+        "summary": "All Sensor Ids",
+        "description": "Retrieves all of the sensor ids assigned to the grow.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sensors/{sensorId}/details": {
+      "get": {
+        "tags": [
+          "Sensors"
+        ],
+        "summary": "All Sensor Details",
+        "parameters": [
+          {
+            "name": "sensorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SensorDeviceDetailsDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/timeline": {
+      "get": {
+        "tags": [
+          "TimeLineEvent"
+        ],
+        "summary": "Retrieves timeline events for grow. \r\nSupports pagination by page and number of retrieved events.\r\nSupports filtering by range and event types.",
+        "parameters": [
+          {
+            "name": "eventTypes",
+            "in": "query",
+            "description": "Types of events to include",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TimelineEventType"
+              }
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "Starting day of event selection. 30 days prior will be used as starting date if not provided",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "Last day day of event selection. 30 days after today will be used as starting date if not provided",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of events to include",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "pagination",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimelineEventDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/triggered-thresholds": {
+      "get": {
+        "tags": [
+          "TriggeredThreshold"
+        ],
+        "summary": "Retrieves triggered thresholds for a grow",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SortedTriggeredThresholdsDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List of users and their data for api key",
+        "description": "Retrieves all users for the grow that is bound the the api key.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserUsageInformation"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BatteryType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 0 - Custom; 1 - Alkaline; 2 - Lithium; 3 - NiMh; 4 - NiCd; 5 - NiZn; 6 - None"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "ControlType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 0 - OpenSprinkler"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "ControlsViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "controlType": {
+            "$ref": "#/components/schemas/ControlType"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "openSprinklerSpecificData": {
+            "$ref": "#/components/schemas/OpenSprinklerSpecificData"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DataPointDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pluggedIn": {
+            "type": "boolean"
+          },
+          "batteryV": {
+            "type": "number",
+            "format": "float"
+          },
+          "electricImpId": {
+            "type": "string",
+            "nullable": true
+          },
+          "signalStrength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "temperatureF": {
+            "type": "number",
+            "format": "float"
+          },
+          "humidityRh": {
+            "type": "number",
+            "format": "float"
+          },
+          "lightLux": {
+            "type": "number",
+            "format": "float"
+          },
+          "airPressure": {
+            "type": "number",
+            "format": "float"
+          },
+          "vpd": {
+            "type": "number",
+            "format": "double"
+          },
+          "co2": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "co2Temperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "co2Rh": {
+            "type": "number",
+            "format": "double"
+          },
+          "voc": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "channel1": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel2": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel3": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel4": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel5": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel6": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel7": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel8": {
+            "type": "number",
+            "format": "double"
+          },
+          "near": {
+            "type": "number",
+            "format": "double"
+          },
+          "clear": {
+            "type": "number",
+            "format": "double"
+          },
+          "flicker": {
+            "type": "number",
+            "format": "double"
+          },
+          "par": {
+            "type": "number",
+            "format": "double"
+          },
+          "gain": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tint": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeviceDetailsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "powerThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "connectivityThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "lowBatteryThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "dayThresholds": {
+            "$ref": "#/components/schemas/DeviceThresholdDto"
+          },
+          "nightThresholds": {
+            "$ref": "#/components/schemas/DeviceThresholdDto"
+          },
+          "offsets": {
+            "$ref": "#/components/schemas/DeviceOffsetsDto"
+          },
+          "vpdLeafTempOffsetInF": {
+            "type": "number",
+            "format": "double"
+          },
+          "dayStart": {
+            "type": "string",
+            "nullable": true
+          },
+          "nightStart": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "vpdTarget": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "templateId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "templateName": {
+            "type": "string",
+            "nullable": true
+          },
+          "templateTypeId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "batteryType": {
+            "$ref": "#/components/schemas/BatteryType"
+          },
+          "lowBatteryVoltage": {
+            "type": "number",
+            "format": "float"
+          },
+          "macAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastCo2CalibrationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeviceOffsetsDto": {
+        "type": "object",
+        "properties": {
+          "tempOffset": {
+            "type": "number",
+            "format": "double"
+          },
+          "humidityOffset": {
+            "type": "number",
+            "format": "double"
+          },
+          "lightOffset": {
+            "type": "number",
+            "format": "double"
+          },
+          "airPressureOffset": {
+            "type": "number",
+            "format": "double"
+          },
+          "vpdLeafTempOffsetInF": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeviceThresholdDto": {
+        "type": "object",
+        "properties": {
+          "lightThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "temperatureThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "humidityThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "vpdThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "dewPointThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "co2Threshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          },
+          "vocThreshold": {
+            "$ref": "#/components/schemas/ViewThresholdDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeviceType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 0 - PulseOne; 1 - PulsePro; 2 - Hub; 3 - Sensor; 4 - Control; 5 - PulseZero"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "DeviceViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "guid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "pulseGuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayStart": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "nightStart": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "isDay": {
+            "type": "boolean"
+          },
+          "vpdLeafTempOffsetInF": {
+            "type": "number",
+            "format": "double"
+          },
+          "vpdTarget": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "batteryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lowBatteryVoltage": {
+            "type": "number",
+            "format": "float"
+          },
+          "mostRecentDataPoint": {
+            "$ref": "#/components/schemas/DataPointDto"
+          },
+          "lastHourData": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataPointDto"
+            },
+            "nullable": true
+          },
+          "proLightReadingPreviewDto": {
+            "$ref": "#/components/schemas/ProLightReadingPreviewDto"
+          },
+          "growTimezoneOffset": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Ec1SensorCalibrationInformationDto": {
+        "type": "object",
+        "properties": {
+          "lastCalibrationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "HighChartAuxiliaryData": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "yAxis": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "valueDecimal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "redCoefficient": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "greenCoefficient": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "blueCoefficient": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HubDataPointDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pluggedIn": {
+            "type": "boolean"
+          },
+          "batteryV": {
+            "type": "number",
+            "format": "float"
+          },
+          "electricImpId": {
+            "type": "string",
+            "nullable": true
+          },
+          "signalStrength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HubDetailsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "hubThresholds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HubThresholdDto"
+            },
+            "nullable": true
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "macAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sensorDevices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SensorDeviceViewDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "HubThresholdDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "notificationActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "lowThresholdValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "highThresholdValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "delay": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "day": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "hubId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "thresholdType": {
+            "$ref": "#/components/schemas/HubThresholdType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HubThresholdType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 1 - Power; 2 - Connectivity"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "HubViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "mostRecentDataPoint": {
+            "$ref": "#/components/schemas/HubDataPointDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IActionResult": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "LastAutomationInfo": {
+        "type": "object",
+        "properties": {
+          "durations": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "sensorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "triggeringValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "mostRecentSensorDataPointDto": {
+            "$ref": "#/components/schemas/MostRecentSensorDataPointDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LightReadingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numReadings": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lightReadings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProLightReadingDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MostRecentSensorDataPointDto": {
+        "type": "object",
+        "properties": {
+          "sensorType": {
+            "$ref": "#/components/schemas/SensorType"
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "dataPointDto": {
+            "$ref": "#/components/schemas/UniversalDataPointDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NextOpenSprinklerProgramRunInfo": {
+        "type": "object",
+        "properties": {
+          "programId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTime": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "programName": {
+            "type": "string",
+            "nullable": true
+          },
+          "dayOfRun": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NonTypeSpecificDeviceListDto": {
+        "type": "object",
+        "properties": {
+          "deviceViewDtos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceViewDto"
+            },
+            "nullable": true
+          },
+          "universalSensorViews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SensorDeviceViewUniversalDto"
+            },
+            "nullable": true
+          },
+          "hubViewDtos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HubViewDto"
+            },
+            "nullable": true
+          },
+          "controlsViewDtos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ControlsViewDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpenSprinklerSpecificData": {
+        "type": "object",
+        "properties": {
+          "lastOnline": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "nextOpenSprinklerProgramRunInfo": {
+            "$ref": "#/components/schemas/NextOpenSprinklerProgramRunInfo"
+          },
+          "lastRanProgramName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastRunProgramId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "mac": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastRunDuration": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "lastRunTimeEnd": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "pausedUntil": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSynced": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "durations": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "lastAutomationInfo": {
+            "$ref": "#/components/schemas/LastAutomationInfo"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ParSensorSubtype": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 0 - Sq522; 1 - Sq618"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "Ph10SensorCalibrationInformationDto": {
+        "type": "object",
+        "properties": {
+          "lastPh4CalibrationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastPh7CalibrationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastPh10CalibrationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProLightReadingDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "channel1": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel2": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel3": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel4": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel5": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel6": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel7": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel8": {
+            "type": "number",
+            "format": "double"
+          },
+          "ir": {
+            "type": "number",
+            "format": "double"
+          },
+          "clear": {
+            "type": "number",
+            "format": "double"
+          },
+          "flicker": {
+            "type": "number",
+            "format": "double"
+          },
+          "gain": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tint": {
+            "type": "number",
+            "format": "double"
+          },
+          "ppfd": {
+            "type": "number",
+            "format": "double"
+          },
+          "dli": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "pfdRed": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "pfdGreen": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "pfdBlue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "pfdIr": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "spectrum": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProLightReadingPreviewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ppfd": {
+            "type": "number",
+            "format": "double"
+          },
+          "dli": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PublicApiDataPoint": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pluggedIn": {
+            "type": "boolean"
+          },
+          "batteryV": {
+            "type": "number",
+            "format": "float"
+          },
+          "electricImpId": {
+            "type": "string",
+            "nullable": true
+          },
+          "signalStrength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "temperatureF": {
+            "type": "number",
+            "format": "double"
+          },
+          "humidityRh": {
+            "type": "number",
+            "format": "float"
+          },
+          "lightLux": {
+            "type": "number",
+            "format": "float"
+          },
+          "airPressure": {
+            "type": "number",
+            "format": "float"
+          },
+          "vpd": {
+            "type": "number",
+            "format": "double"
+          },
+          "co2": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "co2Temperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "co2Rh": {
+            "type": "number",
+            "format": "double"
+          },
+          "voc": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "channel1": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel2": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel3": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel4": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel5": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel6": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel7": {
+            "type": "number",
+            "format": "double"
+          },
+          "channel8": {
+            "type": "number",
+            "format": "double"
+          },
+          "near": {
+            "type": "number",
+            "format": "double"
+          },
+          "clear": {
+            "type": "number",
+            "format": "double"
+          },
+          "flicker": {
+            "type": "number",
+            "format": "double"
+          },
+          "par": {
+            "type": "number",
+            "format": "double"
+          },
+          "gain": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tint": {
+            "type": "number",
+            "format": "double"
+          },
+          "dpC": {
+            "type": "number",
+            "format": "double"
+          },
+          "dpF": {
+            "type": "number",
+            "format": "double"
+          },
+          "temperatureC": {
+            "type": "number",
+            "format": "double"
+          },
+          "lightCalculationReading": {
+            "$ref": "#/components/schemas/PublicApiLightCalculationDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PublicApiLightCalculationDto": {
+        "type": "object",
+        "properties": {
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          },
+          "tint": {
+            "type": "number",
+            "format": "double"
+          },
+          "gain": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ppfd": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "pfdRed": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "pfdGreen": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "pfdBlue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "pfdIr": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SensorDeviceDetailsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "sensorType": {
+            "$ref": "#/components/schemas/SensorType"
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hubName": {
+            "type": "string",
+            "nullable": true
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "vpdTarget": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "vpdLeafTemperatureOffsetinF": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "orpCalibrationOffSet": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "dayStart": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "nightStart": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "sensorTemplateId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sensorTemplateName": {
+            "type": "string",
+            "nullable": true
+          },
+          "thresholds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SensorThresholdDto"
+            },
+            "nullable": true
+          },
+          "offsetId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ph10SensorCalibrationInformationDto": {
+            "$ref": "#/components/schemas/Ph10SensorCalibrationInformationDto"
+          },
+          "ec1SensorCalibrationInformationDto": {
+            "$ref": "#/components/schemas/Ec1SensorCalibrationInformationDto"
+          },
+          "parSensorSubtype": {
+            "$ref": "#/components/schemas/ParSensorSubtype"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SensorDeviceViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "hubId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "parSensorSubtype": {
+            "$ref": "#/components/schemas/ParSensorSubtype"
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "sensorType": {
+            "$ref": "#/components/schemas/SensorType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SensorDeviceViewUniversalDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "hubId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "deviceType": {
+            "$ref": "#/components/schemas/DeviceType"
+          },
+          "mostRecentDataPoint": {
+            "$ref": "#/components/schemas/UniversalDataPointDto"
+          },
+          "sensorType": {
+            "$ref": "#/components/schemas/SensorType"
+          },
+          "lastHourDataPointDtos": {
+            "$ref": "#/components/schemas/UniversalDataPointArrayDto"
+          },
+          "templateId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "dayStart": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "nightStart": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "parSensorSubtype": {
+            "$ref": "#/components/schemas/ParSensorSubtype"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SensorReadingType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 0 - Vwc1Rh; 1 - Vwc1Temperature; 2 - Vwc1Conductivity; 3 - Vwc1ConductivityPwe; 4 - Vwc2Rh; 5 - Vwc2Temperature; 6 - Vwc2Conductivity; 7 - Vwc2ConductivityPwe; 8 - Vwc12Rh; 9 - Vwc12Temperature; 10 - Vwc12Conductivity; 11 - Vwc12ConductivityPwe; 11 - Ph; 12 - WaterTemperature; 13 - Vpd; 14 - DewPoint; 15 - AirTemperature; 16 - Orp; 17 - Co2; 18 - Dli; 19 - Ppfd; 20 - Ec; 21 - Thc1Light; 22 - Rh; 23 - OriginalDevicesLight; 24 - DO"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "SensorThresholdDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "notificationActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "lowThresholdValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "highThresholdValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "delay": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "day": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "thresholdType": {
+            "$ref": "#/components/schemas/SensorThresholdType"
+          },
+          "transitionalDelay": {
+            "$ref": "#/components/schemas/TimeSpan"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SensorThresholdType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 1 - Vwc1; 2 - Temperature; 3 - Humidity; 4 - Vpd; 5 - DewPoint; 6 - Ph; 7 - Ec1Ec; 8 - Ec1Temp; 9 - Vwc1SensorPwecThreshold; 10 - Vwc12VWCThreshold; 11 - Vwc12SensorPwecThreshold; 12 - Par1Ppfd; 13 - SubstrateTemp; 14 - SubstrateBulkEc; 15 - Ph1Temp; 16 - Par1Dli; 17 - Vwc2VwcThreshold; 18 - Vwc2PwecThreshold; 19 - Orp1Orp; 20 - Thc1Co2; 21 - Thc1Rh; 22 - Thc1Temp; 23 - Thc1DewPoint; 24 - Thc1Vpd; 25 - Tdo1TemperatureThreshold; 26 - Tdo1DoThreshold; 27 - Thc1Light"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "SensorType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 0 - Hub; 1 - Vwc1; 2 - Thv1; 3 - Ph10; 4 - Ec1; 5 - Vwc12; 8 - Par1; 9 - Vwc2; 10 - Orp1; 11 - Thc1; 12 - Tdo1; 13 - Vwc3"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "SortedTriggeredThresholdsDto": {
+        "type": "object",
+        "properties": {
+          "ongoing": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ViewTriggeredThresholdDto"
+            },
+            "nullable": true
+          },
+          "resolved": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ViewTriggeredThresholdDto"
+            },
+            "nullable": true
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ThresholdType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 1 - Light; 2 - Temperature; 3 - Humidity; 4 - Power; 5 - Connectivity; 6 - BatteryV; 7 - Co2; 8 - Voc; 11 - Vpd; 12 - DewPoint"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "TimeSpan": {
+        "type": "object",
+        "properties": {
+          "ticks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "days": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hours": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "milliseconds": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "microseconds": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "nanoseconds": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "seconds": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "totalDays": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "totalHours": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "totalMilliseconds": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "totalMicroseconds": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "totalNanoseconds": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "totalMinutes": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "totalSeconds": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimelineEventDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "timelineEventType": {
+            "$ref": "#/components/schemas/TimelineEventType"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "display": {
+            "type": "boolean"
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimelineEventType": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 1 - Note; 2 - Notification; 3 - Environment; 4 - DeviceAdded; 5 - Feeding; 6 - Pests; 7 - MaintenanceAndCleaning; 8 - SensorCalibrated; 9 - BatchStarted; 10 - BatchZoneChanged"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "UniversalDataPointArrayDto": {
+        "type": "object",
+        "properties": {
+          "dataPointValues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UniversalDataPointDtoMultipleValue"
+            },
+            "nullable": true
+          },
+          "dataPointValuesCreatedAt": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UniversalDataPointDto": {
+        "type": "object",
+        "properties": {
+          "dataPointValues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UniversalDataPointDtoSingleValue"
+            },
+            "nullable": true
+          },
+          "sensorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UniversalDataPointDtoMultipleValue": {
+        "type": "object",
+        "properties": {
+          "paramName": {
+            "type": "string",
+            "nullable": true
+          },
+          "measuringUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "paramValues": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "nullable": true
+          },
+          "highChartAuxiliaryData": {
+            "$ref": "#/components/schemas/HighChartAuxiliaryData"
+          },
+          "sensorReadingType": {
+            "$ref": "#/components/schemas/SensorReadingType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UniversalDataPointDtoSingleValue": {
+        "type": "object",
+        "properties": {
+          "paramName": {
+            "type": "string",
+            "nullable": true
+          },
+          "measuringUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "paramValue": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "highChartAuxiliaryData": {
+            "$ref": "#/components/schemas/HighChartAuxiliaryData"
+          },
+          "sensorReadingType": {
+            "$ref": "#/components/schemas/SensorReadingType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserGrowRole": {
+        "enum": [
+          "Api will accept / return the numerical value of the enum: 0 - Owner; 1 - Admin; 2 - Editor; 3 - Viewer; 4 - Invited; 5 - Guest"
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "UserUsageInformation": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "userName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastActive": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ViewInvitationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "growId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sendingUserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sendingUserEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "statusId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invitedUserId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "invitedUserEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserGrowRole"
+          },
+          "dateSent": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dateAccepted": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dateDeclined": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dateCancelled": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ViewThresholdDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "notificationActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "lowThresholdValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "highThresholdValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "delay": {
+            "$ref": "#/components/schemas/TimeSpan"
+          },
+          "day": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deviceId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "thresholdType": {
+            "$ref": "#/components/schemas/ThresholdType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ViewTriggeredThresholdDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resolved": {
+            "type": "boolean"
+          },
+          "thresholdId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "thresholdType": {
+            "$ref": "#/components/schemas/ThresholdType"
+          },
+          "deviceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deviceName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lowOrHigh": {
+            "type": "boolean"
+          },
+          "lowThresholdValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "highThresholdValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "triggeringValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "sensorThresholdType": {
+            "$ref": "#/components/schemas/SensorThresholdType"
+          },
+          "hubThresholdType": {
+            "$ref": "#/components/schemas/HubThresholdType"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "AllDevices",
+      "description": "A collection of API operations related to devices."
+    },
+    {
+      "name": "Devices",
+      "description": "A collection of API operations related to devices."
+    },
+    {
+      "name": "Hub",
+      "description": "A collection of API operations related to users."
+    },
+    {
+      "name": "Invitation",
+      "description": "A collection of API operations related to inviting users."
+    },
+    {
+      "name": "ProLightReading",
+      "description": "A collection of API operations related to light readings."
+    },
+    {
+      "name": "Sensors",
+      "description": "A collection of API operations related to devices."
+    },
+    {
+      "name": "TimeLineEvent",
+      "description": "A collection of API operations related to timeline events."
+    },
+    {
+      "name": "TriggeredThreshold",
+      "description": "A collection of API operations related to timeline events."
+    },
+    {
+      "name": "User",
+      "description": "A collection of API operations related to users."
+    }
+  ]
+}

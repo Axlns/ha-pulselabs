@@ -10,11 +10,25 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_API_KEY
 from homeassistant.exceptions import HomeAssistantError
 
+from homeassistant.helpers import selector
+
 from .const import DOMAIN, CONF_DEVICES
 from .api import get_api
 
 _LOGGER = logging.getLogger(__name__)
 
+STEP_PLAN_SCHEMA = vol.Schema({
+    vol.Required("plan", default="hobbyist"): selector.SelectSelector(
+        selector.SelectSelectorConfig(
+            options=[
+                {"value": "hobbyist", "label": "Hobbyist (4,800/day)"},
+                {"value": "enthusiast", "label": "Enthusiast (24,000/day)"},
+                {"value": "professional", "label": "Professional (120,000/day)"},
+            ],
+            mode=selector.SelectSelectorMode.DROPDOWN,
+        )
+    )
+})
 
 class PulseLabsConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for Pulse Labs."""
@@ -51,10 +65,10 @@ class PulseLabsConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
                 await self.async_set_unique_id(title.lower())  # 1‑интеграция на аккаунт
                 self._abort_if_unique_id_configured()
 
-                return self.async_create_entry(
-                    title=title,
-                    data={CONF_API_KEY: self._api_key, CONF_DEVICES: devices},
-                )
+                self._title = title
+                self._devices = devices
+                self._api_key = self._api_key
+                return await self.async_step_plan()
 
         return self.async_show_form(
             step_id="user",
@@ -62,6 +76,23 @@ class PulseLabsConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
             errors=errors,
         )
 
+    async def async_step_plan(self, user_input: dict[str, Any] | None = None):
+        if user_input is None:
+            return self.async_show_form(
+                    step_id="plan",
+                    data_schema=STEP_PLAN_SCHEMA,
+                )
+
+        return self.async_create_entry(
+            title=self._title,
+            data={
+                CONF_API_KEY: self._api_key,
+                CONF_DEVICES: self._devices,
+            },
+            options={
+                "plan": user_input["plan"],
+            },
+        )
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""

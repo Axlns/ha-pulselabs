@@ -13,3 +13,9 @@ DEVICE_TYPE_MAP: dict[int, str] = {
     4: "Pulse Controller",
     5: "Pulse Zero",
 }
+
+PLAN_LIMITS = {
+    "hobbyist": 4800,
+    "enthusiast": 24000,
+    "professional": 120000,
+}

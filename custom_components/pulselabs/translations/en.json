@@ -36,8 +36,9 @@
       "dli": { "name": "DLI" },
       "signal_strength": { "name": "Signal Strength" },
       "battery_voltage": { "name": "Battery Voltage" },
-      "api_calls_today": { "name": "API calls today" },
-      "api_calls_forecast": { "name": "API calls end‑of‑day" }
+      "api_usage_today": { "name": "API Usage Today" },
+      "api_usage_limit": { "name": "API Usage Limit" },
+      "api_usage_remaining": { "name": "API Usage Remaining" }
     },
     "binary_sensor": {
       "plugged_in": { "name": "Plugged in" }
