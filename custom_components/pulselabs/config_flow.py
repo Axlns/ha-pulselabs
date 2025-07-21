@@ -1,20 +1,20 @@
 """Config flow for the Pulse Labs integration."""
 from __future__ import annotations
 
-import logging
 from typing import Any
+import voluptuous as vol
+import aiohttp
 
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_API_KEY
 from homeassistant.exceptions import HomeAssistantError
-
 from homeassistant.helpers import selector
 
 from .const import DOMAIN, CONF_DEVICES
 from .api import get_api
 
+import logging
 _LOGGER = logging.getLogger(__name__)
 
 STEP_PLAN_SCHEMA = vol.Schema({
@@ -46,7 +46,7 @@ class PulseLabsConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
             api = get_api(session, self._api_key)
 
             try:
-                 # 1️⃣ Сначала имя владельца из /users
+                # 1️⃣ Сначала имя владельца из /users
                 title = await api.async_get_owner_name()
 
                 # 2️⃣ Потом список устройств

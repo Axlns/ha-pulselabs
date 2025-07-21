@@ -16,7 +16,7 @@ from .coordinator import PulseDeviceCoordinator
 PLATFORMS = ["sensor", "binary_sensor"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Pulse Grow from a config entry (one coordinator for all devices)."""
+    """Set up Pulse Labs integration from a config entry (one coordinator for all devices)."""
     session = async_get_clientsession(hass)
     api = get_api(session, entry.data[CONF_API_KEY])
 
@@ -52,7 +52,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
-
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

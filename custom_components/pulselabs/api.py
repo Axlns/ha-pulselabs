@@ -28,6 +28,7 @@ from datetime import datetime
 from importlib.resources import files
 from typing import Any, Dict, List, Sequence, Callable
 
+import asyncio
 import aiohttp
 import async_timeout
 
@@ -184,14 +185,12 @@ class BaseApi:
     ответа, чтобы корректно учитывать расход суточной квоты.
     """
 
-    
-
     def __init__(self) -> None:
         self.datapoints_today = 0
         self._last_call_datetime = dt_util.now()
+        self._last_call_success: bool = False
 
         self._on_usage_update: Callable[[], None] | None = None
-
 
     def set_usage_state(self, used: int, last_call_datetime: str):
         self.datapoints_today = used
@@ -250,6 +249,11 @@ class BaseApi:
         data = await self.async_get("/all-devices")
         return data.get("deviceViewDtos", []) if isinstance(data, dict) else data
 
+
+    @property
+    def last_call_success(self) -> bool:
+        return self._last_call_success
+
 # ---------------------------------------------------------------------------
 # 5) Реальный REST‑клиент
 class PulseApi(BaseApi):
@@ -263,10 +267,24 @@ class PulseApi(BaseApi):
     async def async_get(self, path: str):
         url = f"{BASE_URL}{path}"
         headers = {"x-api-key": self._api_key}
-        async with async_timeout.timeout(15):
-            async with self._session.get(url, headers=headers) as resp:
-                resp.raise_for_status()
-                data = await resp.json()
+        try:
+            async with async_timeout.timeout(15):
+                async with self._session.get(url, headers=headers) as resp:
+                    resp.raise_for_status()
+                    data = await resp.json()
+                    self._last_call_success = True
+        except aiohttp.ClientError as err:
+            _LOGGER.warning("Pulse API network error (%s): %s", path, err)
+            self._last_call_success = False
+            raise
+        except asyncio.TimeoutError:
+            _LOGGER.warning("Pulse API request timed out: %s", path)
+            self._last_call_success = False
+            raise
+        except Exception:
+            _LOGGER.exception("Unexpected error calling Pulse API on path %s", path)
+            self._last_call_success = False
+            raise
 
         # Учтём расход datapoints до возврата вызывающему коду
         self._register_usage(path, data)

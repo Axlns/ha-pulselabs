@@ -6,11 +6,10 @@ from datetime import timedelta
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.storage import Store
 
-from .const import DOMAIN, MANUFACTURER, DEVICE_TYPE_MAP
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,8 +27,10 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
     def __init__(self, hass: HomeAssistant, api, entry: ConfigEntry, devices: list[dict]) -> None:
         self.hass = hass
         self.api = api
-        self.devices = devices                      # сохранён список из config_flow
+        self.devices = devices                      
 
+        self._last_successful_data: dict[str, dict] | None = None
+        
         super().__init__(
             hass,
             _LOGGER,
@@ -48,8 +49,7 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
         self.api.set_usage_update_callback(self._persist_api_usage)
 
 
-    # ---------- helpers ----------
-       
+
     @callback
     def _wrap(self, device: dict, mrd: dict) -> dict:
         """Объединяем device + mostRecentDataPoint в один плоский объект."""
@@ -122,7 +122,7 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
             return 0.61121 * math.exp((17.502 * tc) / (tc + 240.97))
 
         vpd = esat_buck(leafC) - esat_buck(tC) * rh / 100.0
-        return round(vpd, 3)   # три знака – но не из-за Pulse, а для точности
+        return round(vpd, 3)
 
     @staticmethod
     def _calc_dew_point_f(tF: float, rh: float) -> float:
@@ -137,26 +137,27 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
         dpF = dpC * 9 / 5 + 32
         return round(dpF, 2)
 
-    # ---------- main ----------
     async def _async_update_data(self) -> dict[str, dict]:
         """Запрашиваем /all-devices и возвращаем данные всех приборов."""
         _LOGGER.debug("Coordinator fetch  id=%s  at=%s", id(self), dt_util.utcnow().isoformat(timespec="seconds"))
 
         try:
             raw = await self.api.async_get_all_devices()
-            
             device_list = raw.get("deviceViewDtos", []) if isinstance(raw, dict) else raw
             data: dict[str, dict] = {}
             for dev in device_list:
                 dev_id = str(dev["id"])
                 mrd = dev.get("mostRecentDataPoint", {})
                 data[dev_id] = self._wrap(dev, mrd)
-                # _LOGGER.debug(data[dev_id])
-
+            self._last_successful_data = data
             return data
 
         except Exception as err:
-            raise UpdateFailed(err) from err
+            self.logger.warning("API fetch failed: %s", err)
+            if self._last_successful_data is not None:
+                self.logger.debug("Using cached data from previous update.")
+                return self._last_successful_data
+            raise UpdateFailed("Initial fetch failed and no cached data available") from err
 
     async def async_load_api_usage_state(self):
         saved = await self._api_usage_store.async_load()
@@ -171,16 +172,4 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
         self._api_usage_state["used"] = self.api.datapoints_today
         self._api_usage_state["last_call_datetime"] = self.api._last_call_datetime.isoformat()
         self.hass.async_create_task(self._api_usage_store.async_save(self._api_usage_state))
-
-class PulseCoordinatorEntity(CoordinatorEntity):
-    _attr_has_entity_name = True
-
-    def __init__(self, coordinator, device_id: int):
-        super().__init__(coordinator)
-        self._device_id = device_id
-        data = coordinator.data.get(str(device_id), {})
-
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, str(device_id))}
-        }
         

@@ -41,7 +41,8 @@
       "api_usage_remaining": { "name": "API Usage Remaining" }
     },
     "binary_sensor": {
-      "plugged_in": { "name": "Plugged in" }
+      "plugged_in": { "name": "Plugged in" },
+      "api_status": { "name": "API Status" }
     }
   }
 }
