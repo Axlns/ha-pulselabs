@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # какие ключи надо брать из корневого deviceViewDto
 COPY_DEVICE_KEYS = (
-    "proLightReadingPreviewDto", "vpdLeafTempOffsetInF",
+    "proLightReadingPreviewDto", "vpdLeafTempOffsetInF", "name",
 )
 
 class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
@@ -59,7 +59,7 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
         for k in COPY_DEVICE_KEYS:
             if k in device:
                 if isinstance(device[k], dict):
-                   wrapped.update(device[k])
+                    wrapped.update(device[k])
                 else:
                     wrapped[k] = device[k]
 

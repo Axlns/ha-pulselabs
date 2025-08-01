@@ -85,14 +85,12 @@ SENSOR_MAP: Final[dict[str, dict[str, Any]]] = {
         "translation_key": "ppfd",
         "device_class": None,
         "unit": "µmol/m²/s",
-        "disabled_by_default": True,
         "icon": "mdi:white-balance-sunny"
     },
     "dli": {
         "translation_key": "dli",
         "device_class": None,
         "unit": "mol/m²/d",
-        "disabled_by_default": True,
         "icon": "mdi:solar-power-variant"
     },
     "lightLux": {
@@ -105,27 +103,15 @@ SENSOR_MAP: Final[dict[str, dict[str, Any]]] = {
         "translation_key": "signal",
         "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
         "unit": "dBm",
-        "disabled_by_default": True,
+        "entity_category": EntityCategory.DIAGNOSTIC
     },
     "batteryV": {
         "translation_key": "battery_voltage",
         "device_class": SensorDeviceClass.VOLTAGE,
         "unit": UnitOfElectricPotential.VOLT,
-        "disabled_by_default": True,
-        "suggested_display_precision":2
-    },
-    "api_calls": {
-        "translation_key": "api_calls_today",
-        "unit": "calls",
-        "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon": "mdi:counter"
-    },
-    "api_forecast": {
-        "translation_key": "api_calls_forecast",
-        "unit": "calls",
-        "entity_category": EntityCategory.DIAGNOSTIC,
-        "icon": "mdi:chart-line"
-    },
+        "suggested_display_precision":2,
+        "entity_category": EntityCategory.DIAGNOSTIC
+    }
 }
 
 def build_entities(coordinator, config_entry):

@@ -35,7 +35,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     for device in entry.data[CONF_DEVICES]:
         device_id = str(device["id"])
-        model = DEVICE_TYPE_MAP.get(device.get("deviceType"), f"Pulse {device.get('deviceType')}")
+        model = DEVICE_TYPE_MAP.get(device.get("deviceType"), f"Uknown model, device type: {device.get('deviceType')}")
         device_registry.async_get_or_create(
             config_entry_id=entry.entry_id,
             identifiers={(DOMAIN, device_id)},

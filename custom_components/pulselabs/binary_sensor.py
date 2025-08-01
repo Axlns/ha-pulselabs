@@ -4,6 +4,7 @@ from typing import Final, Any
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.helpers.entity import EntityCategory
 
 from .sensors.PulseBinarySensor import  PulseBinarySensor
 from .sensors.ApiStatusSensor import  ApiStatusSensor
@@ -13,7 +14,7 @@ BINARY_SENSOR_MAP: Final[dict[str, dict[str, Any]]] = {
     "pluggedIn": {
         "translation_key": "plugged_in",
         "device_class": BinarySensorDeviceClass.PLUG,
-        "disabled_by_default": True,
+        "entity_category": EntityCategory.DIAGNOSTIC
     }
 }
 
@@ -36,7 +37,8 @@ def build_entities(coordinator, config_entry):
                 translation_key=spec.get("translation_key"),
                 device_class=spec.get("device_class"),
                 disabled_by_default=spec.get("disabled_by_default"),
-                icon=spec.get("icon")
+                icon=spec.get("icon"),
+                entity_category=spec.get("entity_category")
             )
             entities.append(entity)
 
