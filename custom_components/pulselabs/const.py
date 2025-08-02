@@ -3,7 +3,7 @@
 DOMAIN = "pulselabs"
 
 BASE_URL = "https://api.pulsegrow.com"
-CONF_DEVICES = "devices"
+
 MANUFACTURER = "Pulse Labs, Inc."
 DEVICE_TYPE_MAP: dict[int, str] = {
     0: "Pulse One",

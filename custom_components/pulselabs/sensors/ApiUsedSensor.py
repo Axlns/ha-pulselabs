@@ -7,9 +7,9 @@ class ApiUsedSensor(ApiSensor, SensorEntity):
     _attr_icon = "mdi:counter"
     _attr_native_unit_of_measurement = "dps"
 
-    def __init__(self, coordinator, entry_id):
-        super().__init__(coordinator, entry_id)
-        self._attr_unique_id = f"{entry_id}_api_used"
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator, entry)
+        self._attr_unique_id = f"{entry.entry_id}_api_used"
         
     @property
     def native_value(self):

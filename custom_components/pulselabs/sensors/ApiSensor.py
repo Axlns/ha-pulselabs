@@ -10,12 +10,13 @@ class ApiSensor(CoordinatorEntity, ABC):
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(self, coordinator, entry_id):
+    def __init__(self, coordinator, entry):
         super().__init__(coordinator)
 
         self._attr_device_info = {
-            "identifiers":{(DOMAIN, f"api_usage_{entry_id}")},
+            "identifiers":{(DOMAIN, f"{entry.entry_id}_api")},
             "name":"Pulse API",
+            "model": "Cloud API",
             "manufacturer":MANUFACTURER,
             "entry_type":DeviceEntryType.SERVICE
         }

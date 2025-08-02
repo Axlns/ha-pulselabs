@@ -24,10 +24,9 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
     data → dict[device_id] = mostRecentDataPoint + метаданные прибора
     """
 
-    def __init__(self, hass: HomeAssistant, api, entry: ConfigEntry, devices: list[dict]) -> None:
+    def __init__(self, hass: HomeAssistant, api, entry: ConfigEntry) -> None:
         self.hass = hass
         self.api = api
-        self.devices = devices                      
 
         self._last_successful_data: dict[str, dict] | None = None
         
@@ -47,8 +46,6 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
         }
 
         self.api.set_usage_update_callback(self._persist_api_usage)
-
-
 
     @callback
     def _wrap(self, device: dict, mrd: dict) -> dict:
@@ -144,13 +141,20 @@ class PulseDeviceCoordinator(DataUpdateCoordinator[dict[str, dict]]):
         try:
             raw = await self.api.async_get_all_devices()
             device_list = raw.get("deviceViewDtos", []) if isinstance(raw, dict) else raw
-            data: dict[str, dict] = {}
+            devices: dict[str, dict] = {}
+
             for dev in device_list:
                 dev_id = str(dev["id"])
                 mrd = dev.get("mostRecentDataPoint", {})
-                data[dev_id] = self._wrap(dev, mrd)
-            self._last_successful_data = data
-            return data
+                devices[dev_id] = self._wrap(dev, mrd)
+
+            result = {
+                "devices": devices,
+                "hubs": None
+            }
+
+            self._last_successful_data = result
+            return result
 
         except Exception as err:
             self.logger.warning("API fetch failed: %s", err)
