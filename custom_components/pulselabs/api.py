@@ -246,8 +246,8 @@ class BaseApi:
         return users[0].get("userName", "PulseLabs") if users else "PulseLabs"
 
     async def async_get_all_devices(self):
-        data = await self.async_get("/all-devices")
-        return data.get("deviceViewDtos", []) if isinstance(data, dict) else data
+        return await self.async_get("/all-devices")
+        #return data.get("deviceViewDtos", []) if isinstance(data, dict) else data
 
 
     @property

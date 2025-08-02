@@ -2,7 +2,6 @@ from abc import ABC
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.components.sensor import SensorEntityDescription
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.config_entries import ConfigEntry
 
 from ..const import DOMAIN, DEVICE_TYPE_MAP, MANUFACTURER
@@ -13,30 +12,17 @@ class PulseSensor(CoordinatorEntity, ABC):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, entry: ConfigEntry, device_id: str, description: SensorEntityDescription) -> None:
-        
-        super().__init__(coordinator, device_id)
+    def __init__(self, coordinator, entry: ConfigEntry, description: SensorEntityDescription) -> None:
+        super().__init__(coordinator)
 
-        self.device_id = device_id
-        self._data_key = description.key
         self.entity_description = description
 
-        # Попытка извлечь device_type из coordinator (если доступен)
-        device_data = coordinator.data.get("devices", {}).get(self.device_id, {})
-        device_type = device_data.get("deviceType", -1)
-        name = device_data.get("name") or f"Device {self.device_id}"
+        self._attr_unique_id = self._get_unique_id(entry)
 
-        # Префикс: device_ или hub_
-        if device_type == 2:
-            identifier = f"{entry.entry_id}_hub_{self.device_id}"
-        else:
-            identifier = f"{entry.entry_id}_device_{self.device_id}"
-
-        self._attr_unique_id = f"{identifier}_{description.key}"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, identifier)},
-            name=name,
-            model=DEVICE_TYPE_MAP.get(device_type, f"Unknown model (type: {device_type})"),
+            identifiers={(DOMAIN, self._get_device_identifier(entry))},
+            name=self._get_device_name(entry),
+            model=self._get_device_model(entry),
             manufacturer=MANUFACTURER,
         )
 
@@ -55,5 +41,26 @@ class PulseSensor(CoordinatorEntity, ABC):
         if description.entity_category is not None:
             self._attr_entity_category = description.entity_category
 
-        # Может отсутствовать — безопасно получить через getattr
-        self._attr_suggested_display_precision = getattr(description, "suggested_display_precision", None)
+        if description.suggested_display_precision is not None:
+            self._attr_suggested_display_precision = description.suggested_display_precision
+
+        if description.state_class is not None:
+            self._attr_state_class = description.state_class
+
+    def _get_unique_id(self, entry: ConfigEntry) -> str:
+        """Возвращает уникальный ID сенсора. Переопределяется в наследниках."""
+        raise NotImplementedError
+
+    def _get_device_identifier(self, entry: ConfigEntry) -> str:
+        """Возвращает строку идентификатора устройства. Переопределяется в наследниках."""
+        raise NotImplementedError
+
+    def _get_device_name(self, entry: ConfigEntry) -> str:
+        """Возвращает название устройства. Переопределяется в наследниках."""
+        raise NotImplementedError
+
+    def _get_device_model(self, entry: ConfigEntry) -> str:
+        """Возвращает модель устройства. Переопределяется в наследниках."""
+        raise NotImplementedError
+
+   
