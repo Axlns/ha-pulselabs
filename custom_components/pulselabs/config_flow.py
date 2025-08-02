@@ -33,7 +33,7 @@ STEP_PLAN_SCHEMA = vol.Schema({
 
 class PulseLabsConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for Pulse Labs."""
-    VERSION = 10
+    VERSION = 3
 
     _api_key: str
     _owner_name: str
