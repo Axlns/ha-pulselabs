@@ -20,7 +20,7 @@ async def build_sensors(hass, entry, coordinator):
     supported_devices = (
         (device_id, device)
         for device_id, device in coordinator.data.get("devices", {}).items()
-        if (device.get("deviceType") or DeviceType.Unknown) in SUPPORTED_TYPES
+        if DeviceType.parse(device.get("deviceType")) in SUPPORTED_TYPES
     )
 
     for device_id, device in supported_devices:
@@ -40,7 +40,7 @@ async def build_binary_sensors(hass, entry, coordinator):
     supported_devices = (
         (device_id, device)
         for device_id, device in coordinator.data.get("devices", {}).items()
-        if (device.get("deviceType") or DeviceType.Unknown) in SUPPORTED_TYPES
+        if DeviceType.parse(device.get("deviceType")) in SUPPORTED_TYPES
     )
 
     for device_id, device in supported_devices:

@@ -20,7 +20,7 @@ async def build_sensors(hass, entry, coordinator):
     supported_hubs = (
         (hub_id, hub)
         for hub_id, hub in coordinator.data.get("hubs", {}).items()
-        if (hub.get("deviceType") or DeviceType.Unknown) in (DeviceType.Hub,)
+        if DeviceType.parse(hub.get("deviceType")) in (DeviceType.Hub,)
     )
 
     for hub_id, hub in supported_hubs:
@@ -38,7 +38,7 @@ async def build_binary_sensors(hass, entry, coordinator):
     supported_hubs = (
         (hub_id, hub)
         for hub_id, hub in coordinator.data.get("hubs", {}).items()
-        if (hub.get("deviceType") or DeviceType.Unknown) in (DeviceType.Hub,)
+        if DeviceType.parse(hub.get("deviceType")) in (DeviceType.Hub,)
     )
 
     for hub_id, hub in supported_hubs:
@@ -56,7 +56,7 @@ async def build_connected_sensors(hass, entry, coordinator):
     supported_sensors = (
         (sensor_id, sensor)
         for sensor_id, sensor in coordinator.data.get("sensors", {}).items()
-        if (sensor.get("deviceType") or DeviceType.Unknown) in (DeviceType.Sensor,)
+        if DeviceType.parse(sensor.get("deviceType")) in (DeviceType.Sensor,)
     )
 
     for sensor_id_key, sensor in supported_sensors:
