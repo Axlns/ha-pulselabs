@@ -4,8 +4,7 @@ This custom integration connects your [Pulse Labs, Inc.](https://pulsegrow.com) 
 
 ## Features
 
-- Supports Pulse One, Pulse Pro, Pulse Zero
-- Support for Hubs, Sensors and Controllers is in development.
+- Supports Pulse One, Pulse Pro, Pulse Zero, Hubs and Hubs connected sensors
 - Uses `/all-devices` for efficient polling
 - Creates dynamic sensors (CO₂, VPD, PPFD, etc.)
 - Accurate leaf/air VPD calculation (Buck 1981)
