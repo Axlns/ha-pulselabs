@@ -9,7 +9,9 @@ from ..sensors.PulseHubConnectedSensor import PulseHubConnectedSensor
 from ..const import (
        HUB_SENSOR_MAP as SENSOR_MAP,
        HUB_BINARY_SENSOR_MAP as BINARY_SENSOR_MAP,
-       UNIVERSAL_SENSOR_MAP,
+       HUB_CONNECTED_SENSOR_MAP,
+       SENSOR_VALUE_MAP,
+       MEASURING_UNIT_MAP,
        slugify,
        DeviceType
 )
@@ -65,10 +67,10 @@ async def build_connected_sensors(hass, entry, coordinator):
         sensor_type = sensor.get("type")
 
         # Попробуем взять описание из универсальной MAP
-        description = UNIVERSAL_SENSOR_MAP.get(sensor_type, {}).get(value_name)
+        description = HUB_CONNECTED_SENSOR_MAP.get(sensor_type, {}).get(value_name)
 
         if not description:
-            description = generate_dynamic_description(value_name, unit)
+            description = generate_sensor_entity_description(value_name, unit)
 
         # Принудительно задаём уникальный ключ
         description = SensorEntityDescription(
@@ -94,24 +96,17 @@ async def build_connected_sensors(hass, entry, coordinator):
 
     return sensors
 
-def generate_dynamic_description(param_name: str, unit: str) -> SensorEntityDescription:
+def generate_sensor_entity_description(param_name: str, unit: str) -> SensorEntityDescription:
     unit = unit.strip() or None
 
-    # Эвристика: device_class по единице измерения
-    if unit in ("°F", "°C"):
-        device_class = SensorDeviceClass.TEMPERATURE
-    elif unit == "%":
-        device_class = SensorDeviceClass.HUMIDITY
-    elif unit == "PPM":
-        device_class = SensorDeviceClass.CO2
-    elif unit == "kPa":
-        device_class = None  # или custom class
-    else:
-        device_class = None
+    device_class, ha_unit = SENSOR_VALUE_MAP.get((param_name, unit), (None, None))
+
+    if ha_unit is None and unit in MEASURING_UNIT_MAP:
+        ha_unit = MEASURING_UNIT_MAP[unit]
 
     return SensorEntityDescription(
         translation_key=slugify(param_name),
-        native_unit_of_measurement=unit,
+        native_unit_of_measurement=ha_unit,
         device_class=device_class,
         icon=None,
         state_class=SensorStateClass.MEASUREMENT,

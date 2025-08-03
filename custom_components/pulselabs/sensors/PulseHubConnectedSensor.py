@@ -16,7 +16,6 @@ class PulseHubConnectedSensor(PulseDataSensor):
 
         self._attr_has_entity_name = False
 
-        #sensor_name = sensor.get("name") or SENSOR_TYPE_MAP.get(SensorType.parse(sensor.get("type")))
         sensor_name = SENSOR_TYPE_MAP.get(SensorType.parse(sensor.get("type")))
         self._attr_name=f"{sensor_name}: {sensor.get("valueName")}"
 

@@ -6,13 +6,13 @@ from homeassistant.components.sensor import SensorEntityDescription, SensorDevic
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from homeassistant.const import ( 
-    UnitOfElectricPotential,
-    PERCENTAGE,
-    UnitOfTemperature,
-    UnitOfConductivity,
+PERCENTAGE,
     CONCENTRATION_PARTS_PER_MILLION,
-    UnitOfPressure,
     LIGHT_LUX,
+    UnitOfTemperature,
+    UnitOfPressure,
+    UnitOfElectricPotential,
+    UnitOfConductivity,
 )
 
 from homeassistant.helpers.entity import EntityCategory
@@ -250,27 +250,27 @@ SENSOR_TYPE_MAP: dict[SensorType, str] = {
     SensorType.Unknown: "Unknown",
 }
 
-UNIVERSAL_SENSOR_MAP = {
+HUB_CONNECTED_SENSOR_MAP = {
     SensorType.VWC1: {
         "Water Content": SensorEntityDescription(
             key=None,
             translation_key="water_content",
+            device_class=SensorDeviceClass.MOISTURE,
             native_unit_of_measurement=PERCENTAGE,
-            icon="mdi:water-percent",
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Pore Water EC": SensorEntityDescription(
             key=None,
             translation_key="pore_water_ec",
-            native_unit_of_measurement="mS/cm",
-            icon="mdi:flash-outline",
+            device_class=SensorDeviceClass.CONDUCTIVITY,
+            native_unit_of_measurement=UnitOfConductivity.MILLISIEMENS_PER_CM,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Bulk EC": SensorEntityDescription(
             key=None,
             translation_key="bulk_ec",
-            native_unit_of_measurement="mS/cm",
-            icon="mdi:flash",
+            device_class=SensorDeviceClass.CONDUCTIVITY,
+            native_unit_of_measurement=UnitOfConductivity.MILLISIEMENS_PER_CM,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Temperature": SensorEntityDescription(
@@ -299,16 +299,15 @@ UNIVERSAL_SENSOR_MAP = {
         "VPD": SensorEntityDescription(
             key=None,
             translation_key="vpd",
-            native_unit_of_measurement=UnitOfPressure.KPA,
             icon="mdi:leaf-circle",
+            native_unit_of_measurement=UnitOfPressure.KPA,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Dew Point": SensorEntityDescription(
             key=None,
             translation_key="dew_point",
-            native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
             device_class=SensorDeviceClass.TEMPERATURE,
-            icon="mdi:thermometer-water",
+            native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
             state_class=SensorStateClass.MEASUREMENT,
         ),
     },
@@ -316,8 +315,8 @@ UNIVERSAL_SENSOR_MAP = {
         "pH": SensorEntityDescription(
             key=None,
             translation_key="ph",
+            device_class=SensorDeviceClass.PH,
             native_unit_of_measurement="",
-            icon="mdi:water",
             state_class=SensorStateClass.MEASUREMENT,
         ),
     },
@@ -325,8 +324,8 @@ UNIVERSAL_SENSOR_MAP = {
         "EC": SensorEntityDescription(
             key=None,
             translation_key="ec",
-            native_unit_of_measurement="mS/cm",
-            icon="mdi:flash",
+            device_class=SensorDeviceClass.CONDUCTIVITY,
+            native_unit_of_measurement=UnitOfConductivity.MILLISIEMENS_PER_CM,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Temperature": SensorEntityDescription(
@@ -341,22 +340,22 @@ UNIVERSAL_SENSOR_MAP = {
         "Water Content": SensorEntityDescription(
             key=None,
             translation_key="water_content",
+            device_class=SensorDeviceClass.MOISTURE,
             native_unit_of_measurement=PERCENTAGE,
-            icon="mdi:water-percent",
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Pore Water EC": SensorEntityDescription(
             key=None,
             translation_key="pore_water_ec",
-            native_unit_of_measurement="mS/cm",
-            icon="mdi:flash-outline",
+            device_class=SensorDeviceClass.CONDUCTIVITY,
+            native_unit_of_measurement=UnitOfConductivity.MILLISIEMENS_PER_CM,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Bulk EC": SensorEntityDescription(
             key=None,
             translation_key="bulk_ec",
-            native_unit_of_measurement="mS/cm",
-            icon="mdi:flash",
+            device_class=SensorDeviceClass.CONDUCTIVITY,
+            native_unit_of_measurement=UnitOfConductivity.MILLISIEMENS_PER_CM,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Temperature": SensorEntityDescription(
@@ -371,7 +370,7 @@ UNIVERSAL_SENSOR_MAP = {
         "PPFD": SensorEntityDescription(
             key=None,
             translation_key="ppfd",
-            native_unit_of_measurement="umol",
+            native_unit_of_measurement="μmol/(m²·s)",
             icon="mdi:white-balance-sunny",
             state_class=SensorStateClass.MEASUREMENT,
         ),
@@ -387,22 +386,22 @@ UNIVERSAL_SENSOR_MAP = {
         "Water Content": SensorEntityDescription(
             key=None,
             translation_key="water_content",
+            device_class=SensorDeviceClass.MOISTURE,
             native_unit_of_measurement=PERCENTAGE,
-            icon="mdi:water-percent",
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Pore Water EC": SensorEntityDescription(
             key=None,
             translation_key="pore_water_ec",
-            native_unit_of_measurement="mS/cm",
-            icon="mdi:flash-outline",
+            device_class=SensorDeviceClass.CONDUCTIVITY,
+            native_unit_of_measurement=UnitOfConductivity.MILLISIEMENS_PER_CM,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Bulk EC": SensorEntityDescription(
             key=None,
             translation_key="bulk_ec",
-            native_unit_of_measurement="mS/cm",
-            icon="mdi:flash",
+            device_class=SensorDeviceClass.CONDUCTIVITY,
+            native_unit_of_measurement=UnitOfConductivity.MILLISIEMENS_PER_CM,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Temperature": SensorEntityDescription(
@@ -417,7 +416,7 @@ UNIVERSAL_SENSOR_MAP = {
         "Orp": SensorEntityDescription(
             key=None,
             translation_key="orp",
-            native_unit_of_measurement="mv",
+            native_unit_of_measurement=UnitOfElectricPotential.MILLIVOLT,
             icon="mdi:atom",
             state_class=SensorStateClass.MEASUREMENT,
         ),
@@ -426,8 +425,8 @@ UNIVERSAL_SENSOR_MAP = {
         "Co2": SensorEntityDescription(
             key=None,
             translation_key="co2",
-            native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
             device_class=SensorDeviceClass.CO2,
+            native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Temperature": SensorEntityDescription(
@@ -447,23 +446,22 @@ UNIVERSAL_SENSOR_MAP = {
         "VPD": SensorEntityDescription(
             key=None,
             translation_key="vpd",
-            native_unit_of_measurement=UnitOfPressure.KPA,
             icon="mdi:leaf-circle",
+            native_unit_of_measurement=UnitOfPressure.KPA,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Dew Point": SensorEntityDescription(
             key=None,
             translation_key="dew_point",
-            native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
             device_class=SensorDeviceClass.TEMPERATURE,
-            icon="mdi:thermometer-water",
+            native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "Light": SensorEntityDescription(
             key=None,
             translation_key="light",
-            native_unit_of_measurement="Lux",
-            icon="mdi:brightness-5",
+            device_class=SensorDeviceClass.ILLUMINANCE,
+            native_unit_of_measurement=LIGHT_LUX,
             state_class=SensorStateClass.MEASUREMENT,
         ),
     },
@@ -483,6 +481,45 @@ UNIVERSAL_SENSOR_MAP = {
             state_class=SensorStateClass.MEASUREMENT,
         ),
     },
+}
+
+
+
+# данная карта содержит карту перевода комбинации (ParamName, MeasuringUnit) из Pulse API  в комбинацию (SensorDeviceClass, UnitOfMeasurement) из HA
+SENSOR_VALUE_MAP = {
+    ("Temperature", "°F"): (SensorDeviceClass.TEMPERATURE, UnitOfTemperature.FAHRENHEIT),
+    ("Temperature", "°C"): (SensorDeviceClass.TEMPERATURE, UnitOfTemperature.CELSIUS),
+    ("Humidity", "%"): (SensorDeviceClass.HUMIDITY, PERCENTAGE),
+    ("Dew Point", "°F"): (SensorDeviceClass.TEMPERATURE, UnitOfTemperature.FAHRENHEIT),
+    ("Dew Point", "°C"): (SensorDeviceClass.TEMPERATURE, UnitOfTemperature.CELSIUS),
+    ("VPD", "kPa"): (None, UnitOfPressure.KPA),
+    ("Co2", "ppm"): (SensorDeviceClass.CO2, CONCENTRATION_PARTS_PER_MILLION),
+    ("Light", "Lux"): (SensorDeviceClass.ILLUMINANCE, LIGHT_LUX),
+    ("Water Content", "%"): (SensorDeviceClass.MOISTURE, PERCENTAGE),
+    ("Pore Water EC", "mS/cm"): (SensorDeviceClass.CONDUCTIVITY, UnitOfConductivity.MILLISIEMENS_PER_CM),
+    ("Bulk EC", "mS/cm"): (SensorDeviceClass.CONDUCTIVITY, UnitOfConductivity.MILLISIEMENS_PER_CM),
+    ("EC", "mS/cm"): (SensorDeviceClass.CONDUCTIVITY, UnitOfConductivity.MILLISIEMENS_PER_CM),
+    ("Orp", "mv"): (None, UnitOfElectricPotential.MILLIVOLT),
+    ("Dissolved Oxygen", "mg/L"): (None, "mg/L"),
+    ("PPFD", "umol"): (None, "μmol/(m²·s)"),
+    ("DLI", "mol/m²"): (None, "mol/m²"),
+    ("pH", ""): (SensorDeviceClass.PH, None),
+}
+
+
+# таблицы соответсвия unit из Pulse API и unit из HA
+MEASURING_UNIT_MAP = {
+    "%": PERCENTAGE,
+    "°F": UnitOfTemperature.FAHRENHEIT,
+    "°C": UnitOfTemperature.CELSIUS,
+    "ppm": CONCENTRATION_PARTS_PER_MILLION,
+    "kPa": UnitOfPressure.KPA,
+    "Lux": LIGHT_LUX,
+    "mS/cm": UnitOfConductivity.MILLISIEMENS_PER_CM,
+    "mv": UnitOfElectricPotential.MILLIVOLT,
+    "mg/L": "mg/L",
+    "umol": "μmol/(m²·s)",
+    "mol/m²": "mol/m²",
 }
 
 def slugify(text: str) -> str:
