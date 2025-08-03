@@ -15,7 +15,6 @@ class PulseDeviceSensor(PulseDataSensor):
         self._device_type = DeviceType.parse(device.get("deviceType"))
 
         super().__init__(coordinator, entry, description)
-        
 
     def _get_unique_id(self, entry: ConfigEntry) -> str:
         return f"{entry.entry_id}_device_{self._device_id}_{self._data_key}"

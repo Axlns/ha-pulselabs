@@ -14,10 +14,12 @@ class PulseHubConnectedSensor(PulseDataSensor):
 
         super().__init__(coordinator, entry, description)
 
+        self._sensor_name = sensor.get("name", f"Sensor: {sensor["id"]}")
+        self._sensor_type_name = SENSOR_TYPE_MAP.get(SensorType.parse(sensor.get("type")))
+        self._sensor_value_name = sensor.get("valueName")
+        # не используем translation_key для определения названия сенсора - выставляем напрямую, т.к. хотим использовать тип сенсора в имени + valueName
         self._attr_has_entity_name = False
-
-        sensor_name = SENSOR_TYPE_MAP.get(SensorType.parse(sensor.get("type")))
-        self._attr_name=f"{sensor_name}: {sensor.get("valueName")}"
+        self._attr_name=f"{self._sensor_type_name}: {sensor.get("valueName")}"
 
     def _get_unique_id(self, entry: ConfigEntry) -> str:
         return f"{entry.entry_id}_hub_{self._device_id}_{self._data_key}"
@@ -36,5 +38,13 @@ class PulseHubConnectedSensor(PulseDataSensor):
         device_data = self.coordinator.data.get(self._section, {}).get(self._data_key, {})
         val = device_data.get("value")
         return round(val, 2) if isinstance(val, float) else val
+
+    @property
+    def extra_state_attributes(self):
+        return {
+            "name": self._sensor_name,
+            "type": self._sensor_type_name,
+            "property": self._sensor_value_name
+        }
 
     

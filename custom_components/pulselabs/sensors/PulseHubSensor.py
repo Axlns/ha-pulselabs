@@ -15,7 +15,6 @@ class PulseHubSensor(PulseDataSensor):
 
         super().__init__(coordinator, entry, description)
         
-
     def _get_unique_id(self, entry: ConfigEntry) -> str:
         return f"{entry.entry_id}_hub_{self._device_id}_{self._data_key}"
 

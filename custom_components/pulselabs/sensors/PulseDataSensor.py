@@ -7,7 +7,6 @@ class PulseDataSensor(PulseSensor, SensorEntity):
     """Обычный сенсор данных Pulse (температура, влажность, CO₂ и т.д.)."""
 
     def __init__(self, coordinator, entry, description):
-        
        super().__init__(coordinator, entry, description)
     
     @property

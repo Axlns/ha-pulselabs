@@ -2,14 +2,11 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 
 from .PulseSensor import PulseSensor
 
-
 class PulseBinarySensor(PulseSensor, BinarySensorEntity):
     """Бинарный сенсор Pulse (например, Plugged In)."""
 
     def __init__(self, coordinator, entry, description):
-        
         super().__init__(coordinator, entry, description)
-
 
     @property
     def is_on(self):
