@@ -17,13 +17,11 @@ PERCENTAGE,
 
 from homeassistant.helpers.entity import EntityCategory
 
-
 DOMAIN = "pulselabs"
 
 BASE_URL = "https://api.pulsegrow.com"
 
 MANUFACTURER = "Pulse Labs, Inc."
-
 
 PLAN_LIMITS = {
     "hobbyist": 4800,
@@ -485,8 +483,6 @@ HUB_CONNECTED_SENSOR_MAP = {
     },
 }
 
-
-
 # данная карта содержит карту перевода комбинации (ParamName, MeasuringUnit) из Pulse API  в комбинацию (SensorDeviceClass, UnitOfMeasurement) из HA
 SENSOR_VALUE_MAP = {
     ("Temperature", "°F"): (SensorDeviceClass.TEMPERATURE, UnitOfTemperature.FAHRENHEIT),
@@ -507,7 +503,6 @@ SENSOR_VALUE_MAP = {
     ("DLI", "mol/m²"): (None, "mol/m²"),
     ("pH", ""): (SensorDeviceClass.PH, None),
 }
-
 
 # таблицы соответсвия unit из Pulse API и unit из HA
 MEASURING_UNIT_MAP = {
